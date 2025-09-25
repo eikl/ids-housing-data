@@ -9,7 +9,7 @@ __pycache__/
 *.pyo
 *.pyd
 .env
-.venv/
+venv/
 python-backend/.venv/
 python-backend/__pycache__/
 *.sqlite3
