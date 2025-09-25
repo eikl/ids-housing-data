@@ -40,5 +40,3 @@ From `housingdata/`:
 ```sh
 npm run dev
 ```
-
-Open your browser and go to `http://localhost:3000` to view the frontend.
