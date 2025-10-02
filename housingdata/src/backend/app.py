@@ -16,6 +16,11 @@ def test_function():
     apartment_price = data.get('apartmentPrice')
     print(f"postalCode: {postal_code}, livingSpace: {living_space}, apartmentPrice: {apartment_price}")
 
+    #these variables should be gotten from the model, not hardcoded
+    living_area_min = 200
+    living_area_max = 74340
+    living_space = (float(living_space) - living_area_min) / (living_area_max - living_area_min)
+
     if int(postal_code) not in zip_code.values:
         # Find the nearest postal code in the dataset
         postal_codes = zip_code.astype(int)
@@ -23,21 +28,23 @@ def test_function():
         postal_code = str(nearest_postal_code)
         print(f"Using nearest postal code: {postal_code}")
   
-    postal_code = str(postal_code)[:4]  # Use only the first 5 digits
+    postal_code = str(postal_code)[:4]  # Use only the first 4 digits
 
     #
     # PLACEHOLDERS
     #
-    beds = 4
+    beds = 3
     baths = 3
-
-
 
     predicted_price = predict_price(postal_code, living_space, beds, baths)
     print('given apartment price:')
     get_typical_house(postal_code, float(apartment_price))
-    #inflation
-    predicted_price *= 1.063
+    
+    #remove normalization
+    #these variables should be gotten from the model, not hardcoded
+    price_min = 1800
+    price_max = 38000000
+    predicted_price = predicted_price * (price_max - price_min) + price_min
     print(f"Predicted Price: {predicted_price}")
     print(f"Postal Code: {postal_code}, Living Space: {living_space}, Beds: {beds}, Baths: {baths}")
 
@@ -63,7 +70,8 @@ def get_typical_house(postal_code, price):
     baths = df_filtered['Baths'].mode()[0]
     living_space = df_filtered['Living Space'].mean()
     median_income = df_filtered['Median Household Income'].mean()
-    print(f"Typical house in area for given price: Beds: {beds}, Baths: {baths}, Living Space: {living_space}, Median Income: {median_income}")
+    median_price = df_filtered['Price'].median()
+    print(f"Typical house in area for given price: Beds: {beds}, Baths: {baths}, Living Space: {living_space}, Median Income: {median_income}, Median Price: {median_price}")
 
     return
 

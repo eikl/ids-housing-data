@@ -6,6 +6,8 @@ from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_percenta
 import joblib
 import numpy as np
 from sklearn.preprocessing import TargetEncoder
+from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
 
 def linear_model(x, a, b):
     return a * x + b
@@ -15,8 +17,13 @@ df = pd.read_csv('housingdata/src/backend/american_housing_data.csv')
 # Print the most common zip code
 most_common_zip = df['Zip Code'].mode()[0]
 
+
 print(f'Most common zip code: {most_common_zip}')
+print('total unique zip codes:', df['Zip Code'].nunique())
 df['Zip Code'] = df['Zip Code'].astype(str).str[:4].astype(int)
+print('total unique zip codes:', df['Zip Code'].nunique())
+# Remove entries where living area is under 200
+df = df[df['Living Space'] >= 200]
 # List the 10 most common zip codes and their counts
 top_10_zips = df['Zip Code'].value_counts().head(10)
 print("Top 10 most common zip codes:")
@@ -39,7 +46,16 @@ median_household_income = df['Median Household Income']
 latitude = df['Latitude']
 longitude = df['Longitude']
 
+# Normalize living_area to between 0 and 1
+living_area_min = living_area.min()
+living_area_max = living_area.max()
+living_area = (living_area - living_area_min) / (living_area_max - living_area_min)
 
+price_min = price.min()
+price_max = price.max()
+price = (price - price_min) / (price_max - price_min)
+print(f'Living area min: {living_area_min}, max: {living_area_max}')
+print(f'Price min: {price_min}, max: {price_max}')
 
 
 correlation_vars = pd.DataFrame({
@@ -54,7 +70,8 @@ correlation_vars = pd.DataFrame({
     'Latitude': latitude,
     'Longitude': longitude
 })
-
+print(correlation_vars.head())
+quit()
 #random forest parameters:
 # predicted variable: price
 # predictors: living space, beds, baths, zip code
@@ -63,7 +80,11 @@ X = correlation_vars[['Zip Code', 'Living Space', 'Beds', 'Baths']]
 y = correlation_vars['Price']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-model = RandomForestRegressor(n_estimators=200, random_state=42)
+# encoder = TargetEncoder()
+# X_train['Zip Code'] = encoder.fit_transform(X_train[['Zip Code']], y_train)
+# X_test['Zip Code'] = encoder.transform(X_test[['Zip Code']])
+
+model = RandomForestRegressor(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
 print(X_train.head())
 
@@ -77,7 +98,6 @@ print(f'MAPE: {MAPE}')
 print(f'RMSE: {RMSE}')
 print(f'R^2: {R2}')
 print(f'Mean Squared Error: {mse}')
-print(f'Feature Importances: {model.feature_importances_}')
 
 #predict the price of a house with 2000 sqft, 3 beds, 2 baths, zip code 10036
 # Save the trained model to a file
