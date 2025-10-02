@@ -8,6 +8,10 @@ CORS(app)
 df = pd.read_csv('american_housing_data.csv')
 zip_code = df['Zip Code']
 
+model_data = joblib.load('random_forest_model.pkl')
+print(model_data)
+model = model_data['model']
+
 @app.route('/', methods=['POST'])
 def test_function():
     data = request.get_json()
@@ -16,10 +20,14 @@ def test_function():
     apartment_price = data.get('apartmentPrice')
     print(f"postalCode: {postal_code}, livingSpace: {living_space}, apartmentPrice: {apartment_price}")
 
-    #these variables should be gotten from the model, not hardcoded
-    living_area_min = 200
-    living_area_max = 74340
+
+    normalization_params = model_data['normalization_params']
+    print(f"Normalization params: {normalization_params}")
+    # Get normalization parameters instead of hardcoding
+    living_area_min = normalization_params['living_area_min']
+    living_area_max = normalization_params['living_area_max']
     living_space = (float(living_space) - living_area_min) / (living_area_max - living_area_min)
+
 
     if int(postal_code) not in zip_code.values:
         # Find the nearest postal code in the dataset
@@ -39,11 +47,11 @@ def test_function():
     predicted_price = predict_price(postal_code, living_space, beds, baths)
     print('given apartment price:')
     get_typical_house(postal_code, float(apartment_price))
-    
+
     #remove normalization
     #these variables should be gotten from the model, not hardcoded
-    price_min = 1800
-    price_max = 38000000
+    price_min = normalization_params['price_min'] # 75000
+    price_max = normalization_params['price_max'] # 38000000
     predicted_price = predicted_price * (price_max - price_min) + price_min
     print(f"Predicted Price: {predicted_price}")
     print(f"Postal Code: {postal_code}, Living Space: {living_space}, Beds: {beds}, Baths: {baths}")
@@ -51,8 +59,7 @@ def test_function():
     return 'Data received!'
 
 def predict_price(postal_code, living_space, beds, baths):
-    # Load the pre-trained model
-    model = joblib.load('random_forest_model.pkl')
+
     # Make a prediction
     feature_names = ['Zip Code', 'Living Space', 'Beds', 'Baths']
     input_data = pd.DataFrame([[postal_code, living_space, beds, baths]], columns=feature_names)

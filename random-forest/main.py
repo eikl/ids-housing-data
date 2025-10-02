@@ -54,6 +54,14 @@ living_area = (living_area - living_area_min) / (living_area_max - living_area_m
 price_min = price.min()
 price_max = price.max()
 price = (price - price_min) / (price_max - price_min)
+
+# Save normalization parameters
+normalization_params = {
+    'living_area_min': living_area_min,
+    'living_area_max': living_area_max,
+    'price_min': price_min,
+    'price_max': price_max
+}
 print(f'Living area min: {living_area_min}, max: {living_area_max}')
 print(f'Price min: {price_min}, max: {price_max}')
 
@@ -70,8 +78,7 @@ correlation_vars = pd.DataFrame({
     'Latitude': latitude,
     'Longitude': longitude
 })
-print(correlation_vars.head())
-quit()
+
 #random forest parameters:
 # predicted variable: price
 # predictors: living space, beds, baths, zip code
@@ -101,5 +108,10 @@ print(f'Mean Squared Error: {mse}')
 
 #predict the price of a house with 2000 sqft, 3 beds, 2 baths, zip code 10036
 # Save the trained model to a file
-joblib.dump(model, 'housingdata/src/backend/random_forest_model.pkl')
-print("Model saved to 'random_forest_model.pkl'")
+# Save the trained model and normalization parameters to a file
+model_data = {
+    'model': model,
+    'normalization_params': normalization_params
+}
+joblib.dump(model_data, 'housingdata/src/backend/random_forest_model.pkl')
+print("Model and normalization parameters saved to 'random_forest_model.pkl'")
